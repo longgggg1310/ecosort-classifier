@@ -1,0 +1,27 @@
+# ultralytics==8.3.21
+# uvicorn==0.32.0
+# gunicorn==23.0.0
+# fastapi==0.115.3
+# loguru==0.7.2
+# python-multipart==0.0.12
+# tensorflow==2.15.0
+# keras==2.15.0
+# tensorboard-data-server==0.7.2
+# tensorflow-estimator==2.15.0
+# tensorflow-io-gcs-filesystem==0.37.1
+uvicorn
+ultralytics==8.2.77
+supervision
+gunicorn==23.0.0
+fastapi==0.115.3
+loguru==0.7.2
+python-multipart==0.0.12
+opencv-contrib-python
+
+
+tensorflow==2.15.0
+keras==2.15.0
+tensorboard-data-server==0.7.2
+tensorflow-estimator==2.15.0
+tensorflow-io-gcs-filesystem==0.37.1
+python-dotenv
