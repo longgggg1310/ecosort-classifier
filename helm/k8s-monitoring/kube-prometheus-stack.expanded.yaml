@@ -6,7 +6,7 @@ grafana:
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/rewrite-target: /$2
-    hosts: ["grafana.newssum.monitor.com"]
+    hosts: ["grafana.monitor.com"]
     path: /
 
 prometheus:
@@ -15,5 +15,6 @@ prometheus:
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/rewrite-target: /$2
-    hosts: ["prometheus.newssum.monitor.com"]
+    hosts: ["prometheus.monitor.com"]
     path: /
+

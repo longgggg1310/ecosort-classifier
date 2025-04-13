@@ -25,5 +25,14 @@ spec:
             - name: HF_API
               valueFrom:
                 secretKeyRef:
-                  name: hf-api-key     # Tên secret bạn tạo
-                  key: HF_API          
+                  name: hf-api-key     
+                  key: HF_API       
+            - name: OTLP_GRPC_ENDPOINT
+              value: "jaeger-jaeger.tracing.svc.cluster.local:4317"
+          volumeMounts:
+            - name: model-volume
+              mountPath: /app/backend/models
+      volumes:
+        - name: model-volume
+          persistentVolumeClaim:
+            claimName: ocr-model-pvc

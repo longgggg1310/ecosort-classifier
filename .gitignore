@@ -48,3 +48,4 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+helm/model_detection/values-secrets.yaml

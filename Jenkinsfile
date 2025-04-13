@@ -13,10 +13,26 @@ pipeline {
 
     environment{
         registry = 'longvudang123/garbage-detection'
-        registryCredential = 'dockerhub'      
+        registryCredential = 'dockerhub'
+        hfApiKey = credentials('hfApiKey-credential-id') 
     }
 
     stages {
+        stage('Test') {
+            steps {
+                script {
+                    echo 'Running tests with Docker build...'
+                    sh '''
+                        docker build -t test-image -f Dockerfile .
+                        docker run --rm test-image bash -c "
+                            cd /app/backend &&
+                            pytest --cov=. --cov-report=term --cov-report=xml -v
+                        "
+                        docker rmi test-image
+                    '''
+                }
+            }
+        }
         stage('Build') {
             steps {
                 script {
@@ -35,7 +51,7 @@ pipeline {
                 kubernetes {
                     containerTemplate {
                         name 'helm' // Name of the container to be used for helm upgrade
-                        image 'quandvrobusto/jenkins:lts' // The image containing helm
+                        image 'longvudang123/custom_jelkins:lts' // The image containing helm
                     }
                 }
             }
@@ -44,11 +60,13 @@ pipeline {
                     container('helm') {
                         // Ensure Helm and Kubernetes are configured properly to deploy
                         sh("""
+                        echo "hfApiKey is: ${hfApiKey}"
                         helm upgrade --install ocr \
-                        --set image.repository=${registry} \
-                        --set image.tag=${BUILD_NUMBER} \
-                        ./helm/model_detection \
-                        --namespace model-serving
+                            --set image.repository=${registry} \
+                            --set image.tag=${BUILD_NUMBER} \
+                            --set hfApiKey="${hfApiKey}" \
+                            ./helm/model_detection \
+                            --namespace model-serving
                         """)
                     }
                 }

@@ -3,6 +3,10 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-nginx-ingress
   namespace: model-serving
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.org/client-max-body-size: "50m"
 spec:
   ingressClassName: "nginx"  # Thay thế cho annotation 'kubernetes.io/ingress.class'
   rules:
@@ -30,3 +34,12 @@ spec:
             name: {{ .Release.Name }}
             port:
               number: 30000
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }} 
+            port:
+              number: 30000
+      
+      

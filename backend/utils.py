@@ -2,8 +2,6 @@ from keras.models import load_model
 from keras.preprocessing import image
 from keras.applications.resnet50 import preprocess_input
 import os
-
-# from openai import OpenAI
 import time
 from dotenv import load_dotenv
 
@@ -12,10 +10,6 @@ import numpy as np
 import requests
 import base64
 
-# from groq import Groq
-# import base64
-
-# client = Groq(api_key=os.getenv("OPENAI_API_KEY"))
 HF_API = os.getenv("HF_API")
 model = load_model("models/model.h5")
 output_class = ["battery", "glass", "metal", "organic", "paper", "plastic"]
@@ -30,7 +24,7 @@ def preprocessing_input(img_path):
     return img
 
 
-async def predict_normal(new_image_path):
+def predict_normal(new_image_path):
     try:
         test_image = preprocessing_input(new_image_path)
         predicted_array = model.predict(test_image)
@@ -42,7 +36,7 @@ async def predict_normal(new_image_path):
         return f"Error processing image: {str(e)}", 0
 
 
-async def zeroshot(new_image_path):
+def zeroshot(new_image_path):
     retry_count = 0
     max_retries = 3
 
@@ -59,6 +53,7 @@ async def zeroshot(new_image_path):
                     "inputs": base64.b64encode(img).decode("utf-8"),
                 }
                 response = requests.post(API_URL, headers=headers, json=payload)
+                time.sleep(3)
                 return response.json()
 
             output = query(

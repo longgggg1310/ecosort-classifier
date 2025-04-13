@@ -1,31 +1,61 @@
-- [1. Create GKE Cluster](#1-create-gke-cluster)
-  - [How-to Guide](#how-to-guide)
-    - [1.1. Create Project in GCP](#11-create-project-in-gcp)
-    - [1.2. Install gcloud CLI](#12-install-gcloud-cli)
-    - [1.3. Install gke-cloud-auth-plugin](#13-install-gke-cloud-auth-plugin)
-    - [1.4. Create a Service Account](#14-create-a-service-account)
-    - [1.5. Add permission for Project](#15-add-permission-for-project)
-    - [1.6. Deploy the GKE Cluster Using Terraform](#16-deploy-the-gke-cluster-using-terraform)
-    - [1.7. Connect to the GKE Cluster](#17-connect-to-the-gke-cluster)
-- [2. Deploy serving service manually](#2-deploy-serving-service-manually)
-  - [Step-by-Step Guide](#step-by-step-guide)
-    - [2.1. Deploy Nginx Ingress Controller](#21-deploy-nginx-ingress-controller)
-      - [API Endpoints](#api-endpoints)
-      - [Running the FastAPI Server](#running-the-fastapi-server)
-- [3. Deploy Monitoring Service](#3-deploy-monitoring-service)
-  - [Step-by-Step Guide](#step-by-step-guide-1)
-    - [Monitoring System](#monitoring-system)
-- [4. Continuous deployment to GKE using Jenkins pipeline](#4-continuous-deployment-to-gke-using-jenkins-pipeline)
-  - [4.1. Spin up your instance](#41-spin-up-your-instance)
-  - [4.2. Install Docker and Jenkins in GCE](#42-install-docker-and-jenkins-in-gce)
-  - [4.3. Connect to Jenkins UI in Compute Engine](#43-connect-to-jenkins-ui-in-compute-engine)
-  - [4.4. Setup Jenkins](#44-setup-jenkins)
-    - [4.4.1. Connect to Github repo](#441-connect-to-github-repo)
-    - [4.4.2. Add Dockerhub credential to Jenkins at `Manage Jenkins/Credentials`](#442-add-dockerhub-credential-to-jenkins-at-manage-jenkinscredentials)
-    - [4.4.3. Install the Kubernetes, Docker, Docker Pineline, GCloud SDK Plugins at `Manage Jenkins/Plugins`](#443-install-the-kubernetes-docker-docker-pineline-gcloud-sdk-plugins-at-manage-jenkinsplugins)
-    - [4.4.4. Set up a connection to GKE by adding the cluster certificate key at `Manage Jenkins/Clouds`.](#444-set-up-a-connection-to-gke-by-adding-the-cluster-certificate-key-at-manage-jenkinsclouds)
-    - [4.4.6. Install Helm on Jenkins to enable application deployment to GKE cluster.](#446-install-helm-on-jenkins-to-enable-application-deployment-to-gke-cluster)
-  - [4.5. Continuous deployment](#45-continuous-deployment)
+# Project Title: GKE Cluster Management and Deployment
+
+
+![](images/Untitled-2025-04-03-1329.png
+)
+
+## Table of Contents
+- [Project Title: GKE Cluster Management and Deployment](#project-title-gke-cluster-management-and-deployment)
+  - [Table of Contents](#table-of-contents)
+  - [1. Create GKE Cluster](#1-create-gke-cluster)
+    - [How-to Guide](#how-to-guide)
+      - [1.1. Create Project in GCP](#11-create-project-in-gcp)
+      - [1.2. Install gcloud CLI](#12-install-gcloud-cli)
+      - [1.3. Install gke-cloud-auth-plugin](#13-install-gke-cloud-auth-plugin)
+      - [1.4. Create a Service Account](#14-create-a-service-account)
+      - [1.5. Add permission for Project](#15-add-permission-for-project)
+      - [1.6. Deploy the GKE Cluster Using Terraform](#16-deploy-the-gke-cluster-using-terraform)
+      - [1.7. Connect to the GKE Cluster](#17-connect-to-the-gke-cluster)
+  - [2. Deploy serving service manually](#2-deploy-serving-service-manually)
+    - [Step-by-Step Guide](#step-by-step-guide)
+      - [2.1. Deploy Nginx Ingress Controller](#21-deploy-nginx-ingress-controller)
+      - [2.2. Retrieve the Nginx Ingress IP Address](#22-retrieve-the-nginx-ingress-ip-address)
+      - [2.3. Configure the Domain Name](#23-configure-the-domain-name)
+      - [2.4. Test the API](#24-test-the-api)
+      - [2.5. Running the FastAPI Server (Locally for Development)](#25-running-the-fastapi-server-locally-for-development)
+      - [2.6. Access the API Documentation](#26-access-the-api-documentation)
+  - [3. Deploy Monitoring Service](#3-deploy-monitoring-service)
+    - [Step-by-Step Guide](#step-by-step-guide-1)
+      - [3.1. Set Up Monitoring Namespace](#31-set-up-monitoring-namespace)
+      - [3.2. Install Kube-Prometheus-Stack](#32-install-kube-prometheus-stack)
+      - [3.3. Configure Access via NGINX Ingress](#33-configure-access-via-nginx-ingress)
+      - [3.4. Accessing Services](#34-accessing-services)
+  - [4. Deploy Jaeger for Distributed Tracing](#4-deploy-jaeger-for-distributed-tracing)
+    - [Step-by-Step Guide](#step-by-step-guide-2)
+      - [4.1. Set Up Tracing Namespace](#41-set-up-tracing-namespace)
+      - [4.2. Deploy Jaeger with Helm](#42-deploy-jaeger-with-helm)
+      - [4.3. Configure Host Access](#43-configure-host-access)
+      - [4.4. Accessing Jaeger](#44-accessing-jaeger)
+  - [5. Continuous deployment to GKE using Jenkins pipeline](#5-continuous-deployment-to-gke-using-jenkins-pipeline)
+    - [5.1. Spin up your instance](#51-spin-up-your-instance)
+    - [5.2. Install Docker and Jenkins in GCE](#52-install-docker-and-jenkins-in-gce)
+    - [5.3. Connect to Jenkins UI in Compute Engine](#53-connect-to-jenkins-ui-in-compute-engine)
+    - [5.4. Setup Jenkins](#54-setup-jenkins)
+      - [5.4.1. Connect to Github repo](#541-connect-to-github-repo)
+      - [5.4.2. Add Dockerhub credential to Jenkins at `Manage Jenkins/Credentials`](#542-add-dockerhub-credential-to-jenkins-at-manage-jenkinscredentials)
+      - [5.4.3. Install the Kubernetes, Docker, Docker Pineline, GCloud SDK Plugins at `Manage Jenkins/Plugins`](#543-install-the-kubernetes-docker-docker-pineline-gcloud-sdk-plugins-at-manage-jenkinsplugins)
+      - [5.4.4. Set up a connection to GKE by adding the cluster certificate key at `Manage Jenkins/Clouds`.](#544-set-up-a-connection-to-gke-by-adding-the-cluster-certificate-key-at-manage-jenkinsclouds)
+      - [5.4.6. Install Helm on Jenkins to enable application deployment to GKE cluster.](#546-install-helm-on-jenkins-to-enable-application-deployment-to-gke-cluster)
+    - [5.5. Continuous deployment](#55-continuous-deployment)
+      - [📁 Directory Structure](#-directory-structure)
+  - [6. **Further Actions**](#6-further-actions)
+    - [6.1. GitOps Integration](#61-gitops-integration)
+    - [6.2. Autoscaling](#62-autoscaling)
+
+
+
+
+
 
 
 ## 1. Create GKE Cluster
@@ -109,57 +139,86 @@ kubectx [YOUR_GKE_CLUSTER_ID]
 ```
 
 ## 2. Deploy serving service manually
-Using [Helm chart](https://helm.sh/docs/topics/charts/) to deploy application on GKE cluster.
-
-
+We will use the [Helm chart](https://helm.sh/docs/topics/charts/) to deploy the application on a GKE cluster.
 
 ### Step-by-Step Guide
+
+
+
 #### 2.1. Deploy Nginx Ingress Controller
 
-To deploy the Nginx Ingress Controller in the `nginx-ingress` namespace, run the following commands:
+To deploy the Nginx Ingress Controller in the `nginx-ingress` namespace, follow these steps:
 
-```bash
-cd helm/nginx_ingress
-kubectl create ns nginx-ingress
-kubens nginx-ingress
-helm upgrade --install nginx-ingress .
-```
-After that, nginx ingress controller will be created in `nginx-ingress` namespace.
+1. **Navigate to the Helm chart directory**:
+    ```bash
+    cd helm/nginx_ingress
+    ```
 
-Once the application is successfully deployed on the GKE cluster, you can test the API by following these steps:
+2. **Create the `nginx-ingress` namespace**:
+    ```bash
+    kubectl create ns nginx-ingress
+    ```
 
-+ Retrieve the Nginx Ingress IP Address
+3. **Switch to the `nginx-ingress` namespace**:
+    ```bash
+    kubens nginx-ingress
+    ```
+
+4. **Deploy the Nginx Ingress Controller**:
+    ```bash
+    helm upgrade --install nginx-ingress .
+    ```
+
+After completing these steps, the Nginx Ingress Controller will be deployed in the `nginx-ingress` namespace.
+
+#### 2.2. Retrieve the Nginx Ingress IP Address
+
+Once the Nginx Ingress Controller is deployed successfully, retrieve the IP address of the Ingress by running:
+
+
 
 ```bash
 kubectl get ing
 ```
 
-+   Add the domain name `ocr.example.com` (set up in `helm/app/templates/app_ingress.yaml`) of this IP to `/etc/hosts`
-  
-```bash
-sudo nano /etc/hosts
-[YOUR_INGRESS_IP_ADDRESS] ocr.example.com
-```
+#### 2.3. Configure the Domain Name
 
-##### API Endpoints
+1. **Edit the `/etc/hosts` file to map the Ingress IP address to the domain `ocr.example.com`. This ensures that the domain name points to your deployed application.**:
+   
+    ```bash
+    sudo nano /etc/hosts
+    ```
+2. **Add the following entry to map the Ingress IP address to `ocr.example.com`**:
+   
+    ```bash
+    [YOUR_INGRESS_IP_ADDRESS] ocr.example.com
+    ```
+Replace `[YOUR_INGRESS_IP_ADDRESS]` with the actual IP address you obtained from the kubectl get ing command.
 
-Homepage
-+ Endpoint: /
-+ Method: GET
-+ Purpose: Returns a welcome message and instructions.
-+ Response:
 
+#### 2.4. Test the API
+
+Once the application is successfully deployed, you can test the API by visiting the following endpoints:
+
+API Endpoints
+
+1. Homepage:
+   + Endpoint: /
+   + Method: GET
+   + Purpose: Returns a welcome message and instructions.
+   + Response:
 ```bash
 {
     "message": "Welcome to the OCR API. Use /predict to classify images or /get-advice for waste disposal."
 }
 ```
-Image Classification
-+ Endpoint: /predict
-+ Method: POST
-+ Purpose: Accepts an image file and returns its classification and confidence.
-+ Input: Image file (multipart/form-data).
-+ Response:
+
+2. Image Classification:
+   + Endpoint: /predict
+   + Method: POST
+   + Purpose: Accepts an image file and returns its classification and confidence.
+   + Input: Image file (multipart/form-data).
+   + Response:
 ```bash
 {
     "file_path": "path/to/uploaded/file.jpg",
@@ -168,56 +227,92 @@ Image Classification
 }
 ```
 
-##### Running the FastAPI Server
+#### 2.5. Running the FastAPI Server (Locally for Development)
 
-Run the FastAPI server with uvicorn:
+To run the FastAPI server locally for development, you can use uvicorn. Run the following command:
 
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
+This will start the server and bind it to all IP addresses on port 8000.
+
+#### 2.6. Access the API Documentation
+
+After the application is deployed, you can access the API documentation by navigating to:
+
+```bash
+ocr.example.com/docs
+```
+This will allow you to explore and test the API endpoints interactively.
+
+🚀 Enjoy using your deployed OCR service!
+
 
 After deployment, visit `ocr.example.com/docs` to explore and test the API. 🚀
 
 ## 3. Deploy Monitoring Service
 
-For monitoring the health of nodes and pods running the application, we will use **Prometheus** for metrics collection and **Grafana** for visualization. Prometheus will gather metrics from both nodes and pods within the GKE cluster, while Grafana will display real-time data such as CPU and RAM usage. Alerts on system health will be sent to Discord.
+To monitor the health of nodes and pods running the application, we will use **Prometheus** for metrics collection and **Grafana** for visualization. Prometheus gathers metrics from both nodes and pods within the GKE cluster, while Grafana displays real-time data such as CPU and RAM usage. Alerts regarding system health can be sent to a Discord channel.
 
 ### Step-by-Step Guide
 
-#### Monitoring System
-- Create and switch to namespace `monitoring`
-    ``` shell
-    kubectl create ns monitoring
-    kubens monitoring
-    ```
+#### 3.1. Set Up Monitoring Namespace
+1. **Create and switch to the `monitoring` namespace**:
 
-- Get dependencies to build `kube-prometheus-stack`
-    ``` shell
-    cd helm/k8s-monitoring/kube-prometheus-stack
-    helm dependency build
-    ```
+```bash
+kubectl create ns monitoring
+kubens monitoring
+```
 
-- Deploy `kube-prometheus-stack` using `helm`
-    ```shell
-    cd helm/k8s-monitoring
-    helm install -f kube-prometheus-stack.expanded.yaml kube-prometheus-stack kube-prometheus-stack -n monitoring
-    ```
+#### 3.2. Install Kube-Prometheus-Stack
 
-- Edit **hosts**
-  - Add 2 hosts of `grafana` and `prometheus` at the end of `/ect/hosts`
-    ```
-    sudo vim /ect/hosts
-    ```
-    ```
-    NGINX_EXTERNAL_IP prometheus.newssum.monitor.com
-    NGINX_EXTERNAL_IP grafana.newssum.monitor.com
-    ```
-
-- Grafana can be accessed at `http://grafana.newssum.monitor.com/login`
-
-- Prometheus can be accessed at `http://prometheus.newssum.monitor.com`
+1. Navigate to the chart folder and build Helm dependencies:
 
 
+```bash
+cd helm/k8s-monitoring/kube-prometheus-stack
+helm dependency build
+```
+
+2. Deploy `kube-prometheus-stack` using Helm:
+
+```bash
+cd helm/k8s-monitoring
+helm install -f kube-prometheus-stack.expanded.yaml kube-prometheus-stack kube-prometheus-stack -n monitoring
+```
+
+
+#### 3.3. Configure Access via NGINX Ingress
+
+1. Edit your /etc/hosts file to map the ingress IP to custom domains:
+
+
+```bash
+sudo vim /etc/hosts
+```
+
+Add the following lines (replace `NGINX_EXTERNAL_IP` with your actual IP):
+
+```bash
+NGINX_EXTERNAL_IP prometheus.monitor.com
+NGINX_EXTERNAL_IP grafana.monitor.com
+```
+
+
+#### 3.4. Accessing Services
+
+Grafana Dashboard:
+
+```bash
+http://grafana.newssum.monitor.com/login
+```
+
+
+Prometheus Dashboard:
+
+```bash
+http://prometheus.newssum.monitor.com
+```
 
 **Note**:
 + Open [Firewall policies](https://console.cloud.google.com/net-security/firewall-manager/firewall-policies) to modify the protocols and ports corresponding to the node `Targets` in a GKE cluster. This will be accept incoming traffic on ports that you specific.
@@ -237,11 +332,85 @@ container_memory_usage_bytes{container='app', namespace='model-serving'}
 ![](images/z6473035901576_3f42c8162fdbd3b0564e7378b01ee52c.jpg)
 
 
-## 4. Continuous deployment to GKE using Jenkins pipeline
+
+## 4. Deploy Jaeger for Distributed Tracing
+
+To enable distributed tracing and visualize traces across services, we deploy **Jaeger**. This is useful for debugging, performance analysis, and understanding request flows between components in your FastAPI microservices. We use the **OpenTelemetry Collector** to export spans to Jaeger.
+
+---
+
+### Step-by-Step Guide
+
+#### 4.1. Set Up Tracing Namespace
+
+Create and switch to a dedicated namespace for Jaeger:
+
+```bash
+kubectl create ns tracing
+kubens tracing
+```
+
+#### 4.2. Deploy Jaeger with Helm
+
+We use a preconfigured Helm chart to deploy Jaeger along with OpenTelemetry Collector.
+
+1. Navigate to Helm chart folder:
+
+```bash
+cd helm/jaeger
+```
+2. Install the Helm release with Jaeger
+
+```bash
+helm upgrade --install jaeger .
+```
+
+The jaeger-values.yaml file includes configuration for:
+
++ Jaeger collector and query services
+
++ OpenTelemetry Collector receiver/exporter pipelines
+
++ Ingress for exposing the Jaeger UI
+
+
+#### 4.3. Configure Host Access
+
+Edit your /etc/hosts file to map the ingress IP to Jaeger's custom domain:
+
+```bash
+sudo vim /etc/hosts
+```
+
+Add the following line (replace NGINX_EXTERNAL_IP with your actual ingress IP):
+
+```bash
+NGINX_EXTERNAL_IP jaeger.yourdomain.com
+```
+
+
+
+#### 4.4. Accessing Jaeger
+
+Jaeger UI:
+
+```bash
+http://jaeger.yourdomain.com
+```
+
+
+**Example Trace UI**
+Below is an example of what a trace looks like in the Jaeger dashboard:
+
+![](images/z6502281715860_793f9e32dedab32f837c004a04f1fd82.jpg)
+
+
+
+## 5. Continuous deployment to GKE using Jenkins pipeline
 
 Jenkins is deployed on Google Compute Engine using [Ansible](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html) with a machine type is **n1-standard-2**.
 
-### 4.1. Spin up your instance
+### 5.1. Spin up your instance
 Create your [service account](https://console.cloud.google.com/), and select [Compute Admin](https://cloud.google.com/compute/docs/access/iam#compute.admin) role (Full control of all Compute Engine resources) for your service account.
 
 Create new key as json type for your service account. Download this json file and save it in `secret_keys` directory. Update your `project` and `service_account_file` in `ansible/deploy_jenkins/create_compute_instance.yaml`.
@@ -265,7 +434,7 @@ Update the IP address of the newly created instance and the SSH key for connecti
 
 ![](images/z6473061759481_fc1a1c43622475e232b2c1d5819ac050.jpg)
 
-### 4.2. Install Docker and Jenkins in GCE
+### 5.2. Install Docker and Jenkins in GCE
 
 ```bash
 cd ansible/deploy_jenkins
@@ -274,7 +443,7 @@ ansible-playbook -i ../inventory deploy_jenkins.yaml
 
 Wait a few minutes, if you see the output like this it indicates that Jenkins has been successfully installed on a Compute Engine instance.
 
-### 4.3. Connect to Jenkins UI in Compute Engine
+### 5.3. Connect to Jenkins UI in Compute Engine
 Access the instance using the command:
 ```bash
 ssh -i ~/.ssh/id_rsa YOUR_USERNAME@YOUR_EXTERNAL_IP
@@ -306,19 +475,19 @@ Create your user ID, and Jenkins will be ready :D
 
 
 
-### 4.4. Setup Jenkins
-#### 4.4.1. Connect to Github repo
+### 5.4. Setup Jenkins
+#### 5.4.1. Connect to Github repo
 + Add Jenkins url to webhooks in Github repo
 
 ![](images/z6473139283530_ffd5b24b8c5ec69c725f56347127e9bf.jpg)
 + Add Github credential to Jenkins (select appropriate scopes for the personal access token)
 
-#### 4.4.2. Add Dockerhub credential to Jenkins at `Manage Jenkins/Credentials`
+#### 5.4.2. Add Dockerhub credential to Jenkins at `Manage Jenkins/Credentials`
 
 ![](images/z6473162177332_803421bc4386ba3994ba2d99af074b8e.jpg)
 
 
-#### 4.4.3. Install the Kubernetes, Docker, Docker Pineline, GCloud SDK Plugins at `Manage Jenkins/Plugins`
+#### 5.4.3. Install the Kubernetes, Docker, Docker Pineline, GCloud SDK Plugins at `Manage Jenkins/Plugins`
 
 After successful installation, restart the Jenkins container in your Compute Engine instance:
 ```bash
@@ -328,7 +497,7 @@ sudo docker restart jenkins
 ![](images/install_plugin_out.gif)
 
 
-#### 4.4.4. Set up a connection to GKE by adding the cluster certificate key at `Manage Jenkins/Clouds`.
+#### 5.4.4. Set up a connection to GKE by adding the cluster certificate key at `Manage Jenkins/Clouds`.
 
 Don't forget to grant permissions to the service account which is trying to connect to our cluster by the following command:
 
@@ -340,16 +509,64 @@ kubectl create clusterrolebinding cluster-admin-default-binding --clusterrole=cl
 
 ![](images/connect_gke_out.gif)
 
-#### 4.4.6. Install Helm on Jenkins to enable application deployment to GKE cluster.
+#### 5.4.6. Install Helm on Jenkins to enable application deployment to GKE cluster.
 
 + You can use the `Dockerfile-jenkins-k8s` to build a new Docker image. After that, push this newly created image to Dockerhub. Finally replace the image reference at `containerTemplate` in `Jenkinsfile` or you can reuse my image `quandvrobusto/jenkins:lts`
 
 
-### 4.5. Continuous deployment
+
+### 5.5. Continuous deployment
 Create `model-serving` namespace first in your GKE cluster
+#### 📁 Directory Structure
+
+```bash
+model-detection/
+├── Chart.yaml
+├── values.yaml                # General configuration (image, ports, replicas, etc.)
+├── values-secrets.yaml        # Sensitive values like hfApiKey (DO NOT commit this)
+└── templates/
+    ├── deployment.yaml
+    ├── ingress.yaml
+    ├── service.yaml
+    └── secret.yaml
+```
+
 ```bash
 kubectl create ns model-serving
 ```
+
+Create `values-secrets.yaml` for your secret key
+
+```bash
+hfApiKey: "your_hf_api_key_here"
+```
+
+Install or upgrade the Helm chart
+
+```bash
+kubens model-serving
+helm upgrade --install ocr . -f values.yaml -f values-secrets.yaml
+```
+
+Add hfApiKey to Jenkins Credentials
+
+1. **Go to Jenkins Dashboard:**
+   - Open your Jenkins instance.
+
+2. **Navigate to the Credentials Section:**
+   - From the Jenkins dashboard, go to the **Credentials** section.
+
+3. **Create a New Secret Text Credential:**
+   - Click on the **(global)** link under the **Stores scoped to Jenkins** section.
+   - Click on **Add Credentials** on the left side of the page.
+   - In the **Kind** drop-down, select **Secret text**.
+
+4. **Enter the Secret Information:**
+   - In the **Secret** field, enter your API key (e.g., `hfApiKey`).
+   - Set the **ID** to something recognizable, such as `hfApiKey-credential-id`.
+
+5. **Save the Credentials:**
+   - Click **OK** to save the credentials.
 
 The CI/CD pipeline will consist of three stages:
 + Tesing model correctness.
@@ -366,7 +583,7 @@ The pipeline will take about 8 minutes. You can confirm the successful deploymen
 
 Here is the Stage view in Jenkins pipeline:
 
-![](images/z6473192292665_049995c6dcd742cc4b1728c5744a7e2f.jpg)
+![](images/z6502283555789_ab5bc9333fe23c51a2f9ff968f4e3c28.jpg)
 
 Check whether the pods have been deployed successfully in the `models-serving` namespace.
 
@@ -377,3 +594,9 @@ Test the API
 ![](images/z6473209772795_dd370685a1713352eede3c4831ac4d2a.jpg)
 
 
+## 6. **Further Actions**
+### 6.1. GitOps Integration
+Implement GitOps using ArgoCD or Flux to automate deployments and synchronize the cluster state from a Git repository.
+
+### 6.2. Autoscaling
+Configure Horizontal Pod Autoscaler and Node Auto-provisioning to enable dynamic scaling based on workload demands.
