@@ -426,8 +426,6 @@ cd ansible/deploy_jenkins
 ansible-playbook create_compute_instance.yaml
 ```
 
-![](images/z6473057101714_3b8194f4615a867a97dd43ce7fc53fd9.jpg)
-
 
 Go to Settings, select [Metadata](https://console.cloud.google.com/compute/metadata) and add your SSH key.
 
