@@ -1,0 +1,76 @@
+---
+# Source: ocr/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name
+  labels:
+    app: release-name
+  namespace: model-serving
+spec:
+  selector:
+    app: release-name
+  ports:
+    - port: 30000
+      protocol: TCP
+      targetPort: 30000
+  type: NodePort
+---
+# Source: ocr/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name
+  labels:
+    app: release-name
+  namespace: model-serving
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: release-name
+  template:
+    metadata:
+      labels:
+        app: release-name
+    spec:
+      containers:
+        - name: release-name
+          image: "longvudang123/backend:latest" 
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 30000
+---
+# Source: ocr/templates/nginx-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: release-name-nginx-ingress
+  namespace: model-serving
+spec:
+  ingressClassName: "nginx"  # Thay thế cho annotation 'kubernetes.io/ingress.class'
+  rules:
+  - host: ocr.example.com  # Bạn có thể thay bằng địa chỉ IP động hoặc tên miền
+    http:
+      paths:
+      - path: /docs
+        pathType: Prefix
+        backend:
+          service:
+            name: release-name
+            port:
+              number: 30000
+      - path: /openapi.json
+        pathType: Prefix
+        backend:
+          service:
+            name: release-name
+            port:
+              number: 30000
+      - path: /predict
+        pathType: Prefix
+        backend:
+          service:
+            name: release-name
+            port:
+              number: 30000

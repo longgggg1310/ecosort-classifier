@@ -1,0 +1,45 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-nginx-ingress
+  namespace: model-serving
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.org/client-max-body-size: "50m"
+spec:
+  ingressClassName: "nginx"  # Thay thế cho annotation 'kubernetes.io/ingress.class'
+  rules:
+  - host: ocr.example.com  # Bạn có thể thay bằng địa chỉ IP động hoặc tên miền
+    http:
+      paths:
+      - path: /docs
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: 30000
+      - path: /openapi.json
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: 30000
+      - path: /predict
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: 30000
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }} 
+            port:
+              number: 30000
+      
+      
