@@ -49,3 +49,4 @@ share/python-wheels/
 *.egg
 MANIFEST
 helm/model_detection/values-secrets.yaml
+
