@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 jenkins/jenkins:lts
+FROM jenkins/jenkins:lts
 USER root
 RUN curl https://get.docker.com > dockerinstall && chmod 777 dockerinstall && ./dockerinstall && \
     curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \

@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: longvudang123/jenkins:lts-jdk17
+    image: longvudang123/jenkins:latest
     container_name: jenkins
     privileged: true
     user: root

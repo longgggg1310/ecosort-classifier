@@ -51,7 +51,7 @@ pipeline {
                 kubernetes {
                     containerTemplate {
                         name 'helm' // Name of the container to be used for helm upgrade
-                        image 'longvudang123/custom_jelkins:lts' // The image containing helm
+                        image 'longvudang123/jenkins:lts-jdk17' // The image containing helm
                     }
                 }
             }

@@ -1,11 +1,12 @@
-# Project Title: GKE Cluster Management and Deployment
+# Project Title: EcoSort: Scalable Waste Classification Platform
+
 
 
 ![](images/Untitled-2025-04-03-1329.png
 )
 
 ## Table of Contents
-- [Project Title: GKE Cluster Management and Deployment](#project-title-gke-cluster-management-and-deployment)
+- [Project Title: EcoSort: Scalable Waste Classification Platform](#project-title-ecosort-scalable-waste-classification-platform)
   - [Table of Contents](#table-of-contents)
   - [1. Create GKE Cluster](#1-create-gke-cluster)
     - [How-to Guide](#how-to-guide)
@@ -48,13 +49,14 @@
       - [5.4.6. Install Helm on Jenkins to enable application deployment to GKE cluster.](#546-install-helm-on-jenkins-to-enable-application-deployment-to-gke-cluster)
     - [5.5. Continuous deployment](#55-continuous-deployment)
       - [📁 Directory Structure](#-directory-structure)
+    - [5.6. Upload Model to PVC and Reinstall Application](#56-upload-model-to-pvc-and-reinstall-application)
+    - [Step-by-Step Guide](#step-by-step-guide-3)
+      - [5.6.1. Create a Persistent Volume Claim (PVC)](#561-create-a-persistent-volume-claim-pvc)
+      - [5.6.2. Create a Temporary Pod to Download the Model](#562-create-a-temporary-pod-to-download-the-model)
+      - [5.6.3. Update Deployment to Use PVC](#563-update-deployment-to-use-pvc)
   - [6. **Further Actions**](#6-further-actions)
     - [6.1. GitOps Integration](#61-gitops-integration)
     - [6.2. Autoscaling](#62-autoscaling)
-
-
-
-
 
 
 
@@ -337,7 +339,7 @@ container_memory_usage_bytes{container='app', namespace='model-serving'}
 
 To enable distributed tracing and visualize traces across services, we deploy **Jaeger**. This is useful for debugging, performance analysis, and understanding request flows between components in your FastAPI microservices. We use the **OpenTelemetry Collector** to export spans to Jaeger.
 
----
+
 
 ### Step-by-Step Guide
 
@@ -511,7 +513,7 @@ kubectl create clusterrolebinding cluster-admin-default-binding --clusterrole=cl
 
 #### 5.4.6. Install Helm on Jenkins to enable application deployment to GKE cluster.
 
-+ You can use the `Dockerfile-jenkins-k8s` to build a new Docker image. After that, push this newly created image to Dockerhub. Finally replace the image reference at `containerTemplate` in `Jenkinsfile` or you can reuse my image `quandvrobusto/jenkins:lts`
++ You can use the `Dockerfile-jenkins-k8s` to build a new Docker image. After that, push this newly created image to Dockerhub. Finally replace the image reference at `containerTemplate` in `Jenkinsfile` or you can reuse my image `longvudang123/jenkins:lts-jdk17`
 
 
 
@@ -585,6 +587,27 @@ Here is the Stage view in Jenkins pipeline:
 
 ![](images/z6502283555789_ab5bc9333fe23c51a2f9ff968f4e3c28.jpg)
 
+
+
+
+As part of the Continuous Deployment pipeline, automated tests are executed to ensure the correctness of the model and application functionality before deployment. The testing framework used is pytest, and code coverage is measured to assess the extent of the codebase being tested.
+
+Test Execution and Results
+The test session is initiated in the Jenkins pipeline to validate the application. Below is the output from a sample test session:
+
+
+![](images/z6504191564936_ed5fa13bc4fd915ac731781b6052e7da.jpg)
+
+
+
+**Coverage Report**: The code coverage analysis shows that 88% of the total statements (191) in the codebase were executed during testing, with 22 statements missed. Key files include:
+main.py: 82% coverage (98 statements, 18 missed).
++ test_dummy.py: 100% coverage (2 statements, 0 missed).
++ test_image.py: 100% coverage (37 statements, 0 missed).
++ utils.py: 93% coverage (54 statements, 4 missed).
+
+**Coverage Output**: The coverage report is exported to coverage.xml for further analysis or integration with other tools.
+
 Check whether the pods have been deployed successfully in the `models-serving` namespace.
 
 ![](images/z6473200653934_35f2c8d3ed4b92e466792860ae4e5661.jpg)
@@ -593,6 +616,81 @@ Test the API
 
 ![](images/z6473209772795_dd370685a1713352eede3c4831ac4d2a.jpg)
 
+
+### 5.6. Upload Model to PVC and Reinstall Application
+
+To ensure the model is uploaded to a Persistent Volume Claim (PVC) before the application is deployed, we will create a temporary Pod to download the model from a storage source (e.g., Google Drive, Hugging Face, or a public URL). Once the model is downloaded into the PVC, the temporary Pod will be deleted, and the application will be reinstalled using Helm to utilize the model from the PVC.
+
+
+
+### Step-by-Step Guide
+
+#### 5.6.1. Create a Persistent Volume Claim (PVC)
+First, create a PVC to store the model. Add the PVC configuration to your Helm chart directory `(model-detection/templates/pvc.yaml)`:
+
+```bash
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ocr-model-pvc
+  namespace: model-serving
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+```
+#### 5.6.2. Create a Temporary Pod to Download the Model
+
+Create a temporary Pod to download the model from a storage source (e.g., Hugging Face, Google Drive) and save it to the PVC. Add a file `init-model-pod.yaml` to the `model-detection/templates/` directory:
+
+
+```bash
+apiVersion: v1
+kind: Pod
+metadata:
+  name: upload-model-pod
+  namespace: model-serving
+spec:
+  restartPolicy: Never
+  containers:
+    - name: model-uploader
+      image: longvudang123/model:latest
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Changing permissions..."
+          chmod -R 777 /mnt/data
+          echo "Uploading model to PVC..."
+          cp -r /model-checkpoints/* /app/backend/models/
+      volumeMounts:
+        - name: model-volume
+          mountPath: /app/backend/models  
+        - name: model-volume
+          mountPath: /mnt/data
+  volumes:
+    - name: model-volume
+      persistentVolumeClaim:
+        claimName: ocr-model-pvc
+```
+
+#### 5.6.3. Update Deployment to Use PVC
+
+Update `deployment.yaml` in the `model-detection/templates/` directory to mount the PVC into the application container:
+
+
+```bash
+volumeMounts:
+            - name: model-volume
+              mountPath: /app/backend/models
+      volumes:
+        - name: model-volume
+          persistentVolumeClaim:
+            claimName: ocr-model-pvc
+```
 
 ## 6. **Further Actions**
 ### 6.1. GitOps Integration

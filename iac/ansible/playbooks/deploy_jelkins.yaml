@@ -3,7 +3,7 @@
   become: yes
   vars:
     default_container_name: jenkins
-    default_container_image: longvudang123/custom_jelkins:lts
+    default_container_image: longvudang123/jenkins:lts
   tasks:
     - name: Install aptitude
       apt:

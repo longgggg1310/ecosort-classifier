@@ -1,4 +1,4 @@
 image:
   repository: longvudang123/garbage-detection
-  tag: "latest"
+  tag: "v1.0.0"
   pullPolicy: Always

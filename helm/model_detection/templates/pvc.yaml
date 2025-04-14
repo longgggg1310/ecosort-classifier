@@ -5,7 +5,8 @@ metadata:
   namespace: model-serving
 spec:
   accessModes:
-    - ReadOnlyMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
+  storageClassName: standard

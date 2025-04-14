@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: upload-model-pod
+  namespace: model-serving
+spec:
+  restartPolicy: Never
+  containers:
+    - name: model-uploader
+      image: longvudang123/model:latest
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Changing permissions..."
+          chmod -R 777 /mnt/data
+          echo "Uploading model to PVC..."
+          cp -r /model-checkpoints/* /app/backend/models/
+      volumeMounts:
+        - name: model-volume
+          mountPath: /app/backend/models  
+        - name: model-volume
+          mountPath: /mnt/data
+  volumes:
+    - name: model-volume
+      persistentVolumeClaim:
+        claimName: ocr-model-pvc
